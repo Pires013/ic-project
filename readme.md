@@ -131,6 +131,41 @@ EAR < 0.20 ?  ──► Sim ──► Alerta de sonolência
         ▼
 Continua monitorando
 ```
-# Coisas para pesquisar
-Uso do HEAD POSE ESTIMATION, para detecção do movimento da queda cabeça e sobre o MAR para detecção de bocejos
-Ve dataset video ou imagem para treinar sonolencia
+---
+
+## 7. MAR (Mouth Aspect Ratio) - Detecção de Bocejos
+
+Assim como o EAR monitora os olhos, o **MAR** calcula a proporção da abertura da boca para identificar episódios de bocejo excessivo, um dos principais indicadores fisiológicos de sonolência ao volante.
+
+### O Conceito Matemático
+A lógica utiliza pontos estratégicos dos lábios superior, inferior e dos cantos da boca para calcular a razão entre a distância vertical e a distância horizontal. 
+
+![Fórmula e Pontos do MAR](/photos-explain/mar-points-formula.png)
+
+* **Distâncias Verticais:** Medem a abertura máxima da boca entre o lábio superior e o inferior.
+* **Distância Horizontal:** Mede a largura total da boca (cantos esquerdo e direito).
+
+### A Regra de Negócio (Diferenciando a Fala do Bocejo)
+O grande desafio teórico do MAR é que a boca se movimenta constantemente durante a fala, gerando picos rápidos. Para evitar falsos positivos:
+* **O Limiar:** Define-se um patamar mínimo (ex: `MAR > 0.50`).
+* **Fator Temporal:** O sistema utiliza um contador de frames para garantir que o bocejo seja sustentado por um período contínuo (ex: de 2 a 4 segundos), caracterizando a fadiga profunda em vez de uma simples conversa.
+
+## 8. Head Pose Estimation (Estimativa de Postura da Cabeça)
+
+Além dos olhos (EAR), o projeto monitora a inclinação da cabeça em um espaço tridimensional para detectar o fenômeno do **microssono** (quando o motorista "pesca" a cabeça para frente).
+
+### O Conceito Matemático
+Como a câmera captura apenas imagens bidimensionais (2D), o algoritmo utiliza um truque de projeção matemática chamado **solvePnP** (Perspective-n-Point). Ele cruza 6 pontos anatômicos rígidos da face detectados pelo MediaPipe com um **Modelo Antropométrico 3D Padrão** (um crânio humano virtual genérico onde a ponta do nariz é o ponto zero `[0,0,0]`).
+
+![Eixos de Rotação da Cabeça](/photos-explain/head-points.png)
+
+O resultado da matriz de rotação é decomposto nos **Ângulos de Euler**:
+* **Pitch (Inclinação Vertical):** Rotação no eixo X. É o foco principal do projeto. Quando o motorista relaxa a musculatura do pescoço e a cabeça cai, o Pitch despenca para valores negativos.
+* **Yaw (Rotação Horizontal):** Rotação no eixo Y. Mede se o motorista está olhando para os lados (distração).
+* **Roll (Inclinação Lateral):** Rotação no eixo Z. Mede o tombamento da cabeça em direção aos ombros.
+
+### Parâmetros de Alerta
+* **Limiar de Pitch (`LIMIAR_PITCH`):** Configurado em **-15°**. Valores inferiores a esse indicam queda crítica da cabeça.
+* **Fator Temporal (`FRAMES_NECESSARIOS`):** Exigência de **20 frames consecutivos** (aprox. 1 segundo) abaixo do limiar para disparar o alerta visual, evitando falsos positivos causados por movimentos rápidos ou checagem de painel.
+
+---
