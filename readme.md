@@ -168,4 +168,8 @@ O resultado da matriz de rotação é decomposto nos **Ângulos de Euler**:
 * **Limiar de Pitch (`LIMIAR_PITCH`):** Configurado em **-15°**. Valores inferiores a esse indicam queda crítica da cabeça.
 * **Fator Temporal (`FRAMES_NECESSARIOS`):** Exigência de **20 frames consecutivos** (aprox. 1 segundo) abaixo do limiar para disparar o alerta visual, evitando falsos positivos causados por movimentos rápidos ou checagem de painel.
 
+<<<<<<< HEAD
 ---
+=======
+---
+>>>>>>> 908f483 (docs: add .gitignore, head pose images)
