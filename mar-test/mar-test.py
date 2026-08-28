@@ -30,8 +30,13 @@ INDICES_BOCA = [61, 291, 37, 84, 267, 314]
 cap = cv2.VideoCapture(0)
 
 contador_frames_bocejo = 0
-LIMIAR_MAR = 0.50 
 FRAMES_NECESSARIOS = 30 
+
+# Variáveis de Calibração Dinâmica
+calibrado = False
+valores_calibracao = []
+FRAMES_CALIBRACAO = 90  # Aprox. 3 segundos de calibração inicial
+LIMIAR_MAR = 0.0        # Será definido automaticamente
 
 while cap.isOpened():
     success, image = cap.read()
@@ -56,7 +61,21 @@ while cap.isOpened():
 
             mar_atual = calcular_mar(pontos_boca)
             
-            cv2.putText(image, f'MAR: {mar_atual:.2f}', (20, 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 0), 2)
+            # --- FASE DE CALIBRAÇÃO DINÂMICA ---
+            if not calibrado:
+                valores_calibracao.append(mar_atual)
+                cv2.putText(image, 'CALIBRANDO... Mantenha a boca fechada', (20, 50), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 255), 2)
+                
+                if len(valores_calibracao) >= FRAMES_CALIBRACAO:
+                    # Média da boca fechada + margem de segurança (1.6x)
+                    media_repouso = sum(valores_calibracao) / len(valores_calibracao)
+                    LIMIAR_MAR = media_repouso * 1.6
+                    calibrado = True
+                    print(f"Calibração concluída! Repouso: {media_repouso:.2f} | Novo Limiar MAR: {LIMIAR_MAR:.2f}")
+                continue
+            # -----------------------------------
+
+            cv2.putText(image, f'MAR: {mar_atual:.2f} (Lim: {LIMIAR_MAR:.2f})', (20, 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 0), 2)
 
             if mar_atual > LIMIAR_MAR:
                 contador_frames_bocejo += 1
