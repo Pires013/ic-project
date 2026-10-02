@@ -1,3 +1,6 @@
 ﻿venv/
 __pycache__/
 *.pyc
+.venv/
+
+CONTEXTO_PROJETO.md
